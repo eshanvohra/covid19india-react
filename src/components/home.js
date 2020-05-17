@@ -1,4 +1,5 @@
 import Footer from './footer';
+import useRequest from './hooks/useRequest';
 import Level from './level';
 import MapExplorer from './mapexplorer';
 import Minigraph from './minigraph';
@@ -27,7 +28,6 @@ import {Helmet} from 'react-helmet';
 import {useEffectOnce, useLocalStorage} from 'react-use';
 function Home(props) {
   const [states, setStates] = useState(null);
-  const [stateDistrictWiseData, setStateDistrictWiseData] = useState(null);
   const [districtZones, setDistrictZones] = useState(null);
   const [stateTestData, setStateTestData] = useState(null);
   const [lastUpdated, setLastUpdated] = useState('');
@@ -45,6 +45,10 @@ function Home(props) {
     null
   );
   const [newUpdate, setNewUpdate] = useLocalStorage('newUpdate', false);
+
+  const {data: stateDistrictWiseData} = useRequest({
+    url: 'https://api.covid19india.org/state_district_wise.json',
+  });
 
   const Bell = useMemo(
     () => (
@@ -101,13 +105,8 @@ function Home(props) {
         axios.get('https://api.covid19india.org/zones.json'),
       ]);
 
-      const [
-        {data},
-        {data: stateDistrictWiseResponse},
-        {data: stateTestData},
-      ] = await Promise.all([
+      const [{data}, {data: stateTestData}] = await Promise.all([
         axios.get('https://api.covid19india.org/data.json'),
-        axios.get('https://api.covid19india.org/state_district_wise.json'),
         axios.get('https://api.covid19india.org/state_test_data.json'),
       ]);
 
@@ -134,7 +133,6 @@ function Home(props) {
       };
       setStateTestData(testData);
 
-      setStateDistrictWiseData(stateDistrictWiseResponse);
       setFetched(true);
     } catch (err) {
       console.log(err);
